@@ -28,41 +28,50 @@ def verificar_cliente(driver, cnpj):
     try:
 
         print("Preenchendo o CNPJ...")
-        cnpj_input = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, "//input[contains(@id, '708:0')]")))
+        cnpj_input = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//input[contains(@id, '708:0')]")))
         cnpj_input.clear()
         cnpj_input.send_keys(cnpj)
 
         # Submeter o formulário
-        submit_button = WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'slds-button') and contains(@class, 'uiButton--brand') and span[text()='Confirmar']]")))
+        submit_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'slds-button') and contains(@class, 'uiButton--brand') and span[text()='Confirmar']]")))
         submit_button.click()
         
-        time.sleep(2)
 
-        # Verificar se o erro "Telefone precisa começar com 55" aparece
+        
+        # Ocultar a animação de carregamento
+        driver.execute_script("document.querySelector('.loadingCon.global.siteforceLoadingBalls').style.display = 'none';")
+
+
+        # Verificar erros específicos e continuar assim que a mensagem aparecer
         try:
-            erro_telefone = driver.find_element(By.XPATH, "//*[contains(text(), 'O formato correto para o telefone é DDI + DDD + telefone')]")
+            # Aguarda até que uma das mensagens de erro seja visível
+            erro_telefone = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'O formato correto para o telefone é DDI + DDD + telefone')]"))
+            )
             if erro_telefone:
                 return "LIVRE"
-        except NoSuchElementException:
-            pass
+        except TimeoutException:
+            pass  # Se o tempo esgotar, significa que essa mensagem não apareceu, continuar para os próximos erros
 
-        # Verificar se o erro "Cliente já cadastrado" aparece
         try:
-            erro_cadastro = driver.find_element(By.XPATH, "//*[contains(text(), 'Já existe um lead cadastrado com o CNPJ informado.')]")
+            erro_cadastro = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Já existe um lead cadastrado com o CNPJ informado.')]"))
+            )
             if erro_cadastro:
                 return "CARIMBADO"
-        except NoSuchElementException:
-            pass
-        
-        # Verificar se já é cliente
-        try:
-            erro_cliente = driver.find_element(By.XPATH, "//*[contains(text(), 'Já existe um lead e um cliente cadastrado com o CNPJ informado.')]")
-            if erro_cliente:
-                return "JÁ É CLIENTE"
-        except NoSuchElementException:
+        except TimeoutException:
             pass
 
-        return "CARIMBADO"
+        try:
+            erro_cliente = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, "//*[contains(text(), 'Já existe um lead e um cliente cadastrado com o CNPJ informado.')]"))
+            )
+            if erro_cliente:
+                return "JÁ É CLIENTE"
+        except TimeoutException:
+            pass
+
+        return "CARIMBADO"  # Se nenhuma das mensagens aparecer, retornamos "CARIMBADO"
         
     except NoSuchElementException as e:
         print(f"Erro ao localizar elemento: {e}")
