@@ -1,35 +1,3 @@
 Inicie o Chrome com esses parâmetros:
 
 "C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\Users\User\AppData\Local\Google\Chrome\User Data"
-
-
-!BauBau@b4b2024
-
-
-
-Para realizar o Passo 1, você precisa iniciar o Chrome com o modo de depuração ativado, o que permite que o Selenium acesse o navegador com sua sessão de login salva. Vou detalhar o processo:
-
-Feche todas as janelas do Chrome. O Chrome precisa ser aberto no modo de depuração, então certifique-se de que nenhuma janela está aberta antes de iniciar.
-
-Abra o Terminal (Prompt de Comando ou PowerShell no Windows) e digite o seguinte comando para iniciar o Chrome com o modo de depuração:
-
-bash
-Copiar código
-chrome --remote-debugging-port=9222 --user-data-dir="C:Desktop\Login Chrome"
-Substitua "C:\caminho\para\perfil_temporario" pelo caminho da pasta onde deseja armazenar os dados de sessão do navegador. Por exemplo:
-
-bash
-Copiar código
-chrome --remote-debugging-port=9222 --user-data-dir="C:\Selenium\PerfilTemporario"
-Esse caminho é importante porque todos os dados de login e cookies serão salvos lá, permitindo que o Selenium reutilize a sessão em outros processos.
-
-Faça o Login no Site no Chrome que Abriu
-O comando acima abrirá o Chrome com o modo de depuração ativo. Agora, acesse o site desejado (neste caso, o site do C6 Bank) e faça login. Mantenha essa janela aberta após o login, pois essa sessão será usada pelo Selenium.
-
-Verifique o Caminho no Código
-No código Python, na seção onde definimos user_data_dir, substitua o caminho para refletir o mesmo diretório onde você armazenou o perfil temporário:
-
-python
-Copiar código
-user_data_dir = "C:/Selenium/PerfilTemporario"
-Com esse perfil configurado, sempre que o código do Selenium abrir uma nova aba no Chrome, ele estará usando a sessão logada que você criou.
