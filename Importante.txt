@@ -1,3 +1,7 @@
 Inicie o Chrome com esses parâmetros:
 
-"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\Users\User\AppData\Local\Google\Chrome\User Data"
+"C:\Program Files\Google\Chrome\Application\chrome.exe" --remote-debugging-port=9222 --user-data-dir="C:\Users\ALCANCE\Desktop\Login Chrome"
+
+
+
+!BauBau@b4b2024

@@ -35,11 +35,10 @@ def iniciar_driver():
             options.add_argument("--disable-gpu")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
-            
-            user_data_dir = os.path.expanduser("~") + "/AppData/Local/Google/Chrome/User Data"
+            user_data_dir = os.path.expanduser("~") + "/Users/ALCANCE/Desktop/Login Chrome"
             options.add_argument(f"user-data-dir={user_data_dir}")
             options.add_experimental_option("debuggerAddress", "localhost:9222")
-
+            
             driver = webdriver.Chrome(options=options)
             WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
             print("Driver iniciado com sucesso!")
@@ -49,11 +48,10 @@ def iniciar_driver():
     else:
         try:
             driver.execute_script("return document.readyState")
-        except Exception as e:
-            print(f"Driver desconectado, tentando reconectar: {e}")
+        except Exception:
+            print("Driver desconectado, tentando reconectar...")
             driver = None
             iniciar_driver()
-
     return driver
 
 
@@ -64,52 +62,60 @@ def verificar_e_mudar_url(driver, url_desejada):
         driver.get(url_desejada)
     else:
         print(f"Já está na URL correta: {url_atual}")
+        
+
 
 def verificar_cliente(driver, cnpj, contador):
     try:
         print(f"{contador} Preenchendo o CNPJ...")
-        cnpj_input = WebDriverWait(driver, 1).until(
+        cnpj_input = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.XPATH, "//input[contains(@id, '708:0')]"))
         )
         cnpj_input.clear()
         cnpj_input.send_keys(cnpj)
+        
 
+        # Clicar no botão de confirmação
         submit_button = WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'slds-button') and contains(@class, 'uiButton--brand') and span[text()='Confirmar']]"))
         )
         submit_button.click()
 
-        driver.execute_script("document.querySelector('.loadingCon.global.siteforceLoadingBalls').style.display = 'none';")
-        WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.XPATH, "//div[contains(@class, 'loadingCon')]")))
+        # Espera até que o botão de confirmação esteja novamente clicável, indicando que o carregamento terminou
+        WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'slds-button') and contains(@class, 'uiButton--brand') and span[text()='Confirmar']]"))
+        )
+        
 
+        # Verificação de mensagens de erro específicas para determinar o status do cliente
         try:
-            erro_telefone = WebDriverWait(driver, 0.5).until(
+            erro_telefone = WebDriverWait(driver, 10).until(
                 EC.visibility_of_element_located((By.XPATH, "//*[contains(text(), 'O formato correto para o telefone é DDI + DDD + telefone')]"))
             )
             if erro_telefone:
                 return "LIVRE"
-        except TimeoutException:
-            pass
-
+        except (NoSuchElementException, TimeoutException):
+                pass
         try:
-            erro_cadastro = WebDriverWait(driver, 0.5).until(
-                EC.visibility_of_element_located((By.XPATH, "//*[contains(text(), 'Já existe um lead cadastrado com o CNPJ informado.')]"))
+            erro_cadastro = WebDriverWait(driver, 1).until(
+                EC.visibility_of_element_located((By.XPATH, "//a[@class='errorsListLink' and contains(text(), 'Já existe um lead cadastrado com o CNPJ informado.')]"))
             )
             if erro_cadastro:
                 return "CARIMBADO"
-        except TimeoutException:
+        except (NoSuchElementException, TimeoutException):
             pass
 
         try:
-            erro_cliente = WebDriverWait(driver, 0.5).until(
-                EC.visibility_of_element_located((By.XPATH, "//*[contains(text(), 'Já existe um lead e um cliente cadastrado com o CNPJ informado.')]"))
+            erro_cliente = WebDriverWait(driver, 1).until(
+                EC.visibility_of_element_located((By.XPATH, "//a[@class='errorsListLink' and contains(text(), 'Já existe um lead e um cliente cadastrado com o CNPJ informado.')]"))
             )
             if erro_cliente:
                 return "JÁ É CLIENTE"
-        except TimeoutException:
+        except (NoSuchElementException, TimeoutException):
             pass
-
+        
         return "CARIMBADO"
+        
     except NoSuchElementException as e:
         print(f"Erro ao localizar elemento: {e}")
         return "ERRO: Elemento não encontrado"
